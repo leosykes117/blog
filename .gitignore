@@ -184,5 +184,6 @@ $RECYCLE.BIN/
 
 # Project ignores
 config/
+pgdata
 
 # End of https://www.toptal.com/developers/gitignore/api/node,macos,windows,visualstudiocode
