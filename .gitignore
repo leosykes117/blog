@@ -188,4 +188,4 @@ config/
 # End of https://www.toptal.com/developers/gitignore/api/node,macos,windows,visualstudiocode
 
 # IGNORES DEL PROYECTO
-pgdata/
+backend/db/pgdata/*
