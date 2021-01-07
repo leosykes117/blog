@@ -8,7 +8,7 @@
  * --------------------------------------------------
  */
 
-const { createPool } = require('oracledb')
+const { createPool } = require("oracledb")
 
 var Oracle = {}
 let debug = true
@@ -21,18 +21,18 @@ var oracledb
  */
 
 Oracle.checkAvailability = function () {
-	console.log('on Oracle.checkAvailability')
+	console.log("on Oracle.checkAvailability")
 	var respuesta = false
 	if (oracledb) {
 		return oracledb
 	}
 	try {
-		oracledb = require('oracledb')
+		oracledb = require("oracledb")
 		oracledb.fetchAsString = [oracledb.CLOB]
 		// @ts-ignore
 		respuesta = oracledb
 	} catch (e) {
-		console.log('Failed to load oracledb:')
+		console.log("Failed to load oracledb:")
 		console.log(e)
 		respuesta = false
 	}
@@ -76,7 +76,7 @@ Oracle.setDebug = function (debugStatus) {
  */
 
 Oracle.connect = function (options) {
-	console.log('Oracle.connect')
+	console.log("Oracle.connect")
 	return new Promise(function (resolve, reject) {
 		if (!options) {
 			// @ts-ignore
@@ -84,13 +84,13 @@ Oracle.connect = function (options) {
 		}
 		if (!options.connectionParams) {
 			try {
-				options.connectionParams = require('../config/oracle.json')
-				console.log('SCHEMA', options.connectionParams.user)
+				options.connectionParams = require("../config/oracle.json")
+				console.log("SCHEMA", options.connectionParams.user)
 			} catch (err) {
 				reject({
 					code: -1,
-					message: 'No se encontraron parámetros de conexión',
-					error: err
+					message: "No se encontraron parámetros de conexión",
+					error: err,
 				})
 				return
 			}
@@ -99,7 +99,7 @@ Oracle.connect = function (options) {
 			if (!Oracle.checkAvailability()) {
 				reject({
 					code: -1,
-					message: 'No fue posible inicializar oracle'
+					message: "No fue posible inicializar oracle",
 				})
 				return
 			}
@@ -108,8 +108,8 @@ Oracle.connect = function (options) {
 			if (err) {
 				reject({
 					code: -2,
-					message: 'No fue posible conectarse a la base de datos',
-					error: err
+					message: "No fue posible conectarse a la base de datos",
+					error: err,
 				})
 				return
 			}
@@ -127,9 +127,9 @@ Oracle.connect = function (options) {
 			resolve({
 				code: 1,
 				data: {
-					connection: conn
+					connection: conn,
 				},
-				message: 'Conexión generada'
+				message: "Conexión generada",
 			})
 			return
 		})
@@ -147,8 +147,8 @@ Oracle.commit = function (connection) {
 	return new Promise(function (resolve, reject) {
 		if (!connection) {
 			reject({
-				'message': 'Debe iniciarse la conexión',
-				'code': -1
+				message: "Debe iniciarse la conexión",
+				code: -1,
 			})
 			return
 		}
@@ -157,13 +157,13 @@ Oracle.commit = function (connection) {
 			.then(function () {
 				resolve({
 					code: 1,
-					message: 'Consultas confirmadas'
+					message: "Consultas confirmadas",
 				})
 			})
 			.catch(function (err) {
 				reject({
 					code: -1,
-					message: 'Error al generar el commit'
+					message: "Error al generar el commit",
 				})
 			})
 	})
@@ -201,117 +201,132 @@ Oracle.commit = function (connection) {
  * @returns {connectResult} {@link module:Api/OracleDb#queryResult|queryResult}.
  */
 
-Oracle.query = function (sql, params, options, dataConnection, returnConnection) {
-	console.log('oracleConnection.query')
+Oracle.query = function (
+	sql,
+	params,
+	options,
+	dataConnection,
+	returnConnection
+) {
+	console.log("oracleConnection.query")
 	return new Promise(function (resolve, reject) {
 		if (!sql) {
 			reject({
 				code: -1,
-				message: 'Debe enviar la consulta'
+				message: "Debe enviar la consulta",
 			})
 			return
 		}
 		params = params || {}
 		// @ts-ignore
 		Oracle.connect({
-			dataConnection: dataConnection
+			dataConnection: dataConnection,
 		})
 			.then(function (result) {
-                console.log('connect result -->', result)
+				console.log("connect result -->", result)
 				var connection = result.data.connection
 				if (debug) {
-					console.log('sql', sql)
-					console.log('params', JSON.stringify(params))
+					console.log("sql", sql)
+					console.log("params", JSON.stringify(params))
 				}
 
-				connection.execute(sql, params, options || {}, function (err, result) {
-					if (err) {
-                        console.log('ERROR', err)
-						console.log('ERROR query', sql)
-						console.log('ERROR params', JSON.stringify(params))
-						connection
-							.rollback()
-							.then(function () {
-								Oracle.closeConnection(connection)
-									.then(function () {
-										reject({
-											code: -2,
-											message: 'No se pudo generar la consulta',
-											error: err
-										})
-										return
-									})
-									.catch(function () {
-										reject({
-											code: -3,
-											message: 'No se pudo generar la consulta',
-											error: err
-										})
-										return
-									})
-							})
-							.catch(function () {
-								Oracle.closeConnection(connection)
-									.then(function () {
-										reject({
-											code: -4,
-											message: 'No se pudo generar la consulta',
-											error: err
-										})
-										return
-									})
-									.catch(function () {
-										reject({
-											code: -5,
-											message: 'No se pudo generar la consulta',
-											error: err
-										})
-										return
-									})
-							})
-					} else {
-						var resultOracle = {
-							code: 1,
-							message: 'Consulta ejecutada',
-							data: {}
-						}
-						resultOracle.data = result
-						if (returnConnection === true) {
-							resultOracle.data.connection = connection
-							resultOracle.data.oracle = Oracle
-							resolve(resultOracle)
-							return
-						} else {
-							Oracle.commit(connection)
+				connection.execute(
+					sql,
+					params,
+					options || {},
+					function (err, result) {
+						if (err) {
+							console.log("ERROR", err)
+							console.log("ERROR query", sql)
+							console.log("ERROR params", JSON.stringify(params))
+							connection
+								.rollback()
 								.then(function () {
 									Oracle.closeConnection(connection)
 										.then(function () {
-											resolve(resultOracle)
+											reject({
+												code: -2,
+												message:
+													"No se pudo generar la consulta",
+												error: err,
+											})
 											return
 										})
-										.catch(function (err) {
-											console.error(err)
-											resolve(resultOracle)
+										.catch(function () {
+											reject({
+												code: -3,
+												message:
+													"No se pudo generar la consulta",
+												error: err,
+											})
 											return
 										})
 								})
-								.catch(function (err) {
-									console.error(err)
-									resolve(resultOracle)
-									return
+								.catch(function () {
+									Oracle.closeConnection(connection)
+										.then(function () {
+											reject({
+												code: -4,
+												message:
+													"No se pudo generar la consulta",
+												error: err,
+											})
+											return
+										})
+										.catch(function () {
+											reject({
+												code: -5,
+												message:
+													"No se pudo generar la consulta",
+												error: err,
+											})
+											return
+										})
 								})
+						} else {
+							var resultOracle = {
+								code: 1,
+								message: "Consulta ejecutada",
+								data: {},
+							}
+							resultOracle.data = result
+							if (returnConnection === true) {
+								resultOracle.data.connection = connection
+								resultOracle.data.oracle = Oracle
+								resolve(resultOracle)
+								return
+							} else {
+								Oracle.commit(connection)
+									.then(function () {
+										Oracle.closeConnection(connection)
+											.then(function () {
+												resolve(resultOracle)
+												return
+											})
+											.catch(function (err) {
+												console.error(err)
+												resolve(resultOracle)
+												return
+											})
+									})
+									.catch(function (err) {
+										console.error(err)
+										resolve(resultOracle)
+										return
+									})
+							}
 						}
 					}
-				})
+				)
 			})
 			.catch(function (err) {
-                console.log('ERROR', err)
-				console.log('ERROR query', sql)
-				console.log('ERROR params', JSON.stringify(params))
+				console.log("ERROR", err)
+				console.log("ERROR query", sql)
+				console.log("ERROR params", JSON.stringify(params))
 				reject({
 					code: -6,
-					message: 'No se pudo generar la consulta',
-					error: err
+					message: "No se pudo generar la consulta",
+					error: err,
 				})
 				return
 			})
@@ -328,7 +343,7 @@ Oracle.query = function (sql, params, options, dataConnection, returnConnection)
  */
 
 Oracle.getColumnByName = function (metadata, row, columnName) {
-	console.log('Oracle.getColumnByName')
+	console.log("Oracle.getColumnByName")
 	for (var i in metadata) {
 		if (metadata[i].name.toLowerCase() == columnName.toLowerCase()) {
 			return row[i]
@@ -347,7 +362,7 @@ Oracle.getColumnByName = function (metadata, row, columnName) {
  */
 
 Oracle.getIndexColumnByName = function (metadata, columnName) {
-	console.log('Oracle.getIndexColumnByName')
+	console.log("Oracle.getIndexColumnByName")
 	for (var i in metadata) {
 		if (metadata[i].name.toLowerCase() == columnName.toLowerCase()) {
 			return Number(i)
@@ -374,28 +389,28 @@ Oracle.getIndexColumnByName = function (metadata, columnName) {
 
 Oracle.closeConnection = function (connection) {
 	return new Promise(function (resolve, reject) {
-		console.log('Oracle.closeConnection')
+		console.log("Oracle.closeConnection")
 		if (!connection) {
 			reject({
-				'message': 'Debe iniciarse la conexión',
-				'code': -1
+				message: "Debe iniciarse la conexión",
+				code: -1,
 			})
 			return
 		}
-		console.log('Conexión Iniciada, iniciar con el connection.release')
+		console.log("Conexión Iniciada, iniciar con el connection.release")
 		connection.release(function (err) {
-			console.log('Respuesta de connection.release. Error=', err)
+			console.log("Respuesta de connection.release. Error=", err)
 			if (err) {
 				reject({
 					code: -2,
-					message: 'No fue posible cerrar la conexión',
-					error: err
+					message: "No fue posible cerrar la conexión",
+					error: err,
 				})
 				return
 			}
 			resolve({
 				code: 1,
-				message: 'Conexión cerrada'
+				message: "Conexión cerrada",
 			})
 			connection = null
 			return
@@ -418,69 +433,87 @@ Oracle.getTransaction = function (dataConnection) {
 	return new Promise(function (resolve, reject) {
 		// @ts-ignore
 		Oracle.connect({
-			dataConnection: dataConnection
+			dataConnection: dataConnection,
 		})
 			.then(function (result) {
 				_this.connection = result.data.connection
 				_this.returnObject = {
-					query: function (sql, params, options, dataConnection, returnConnection) {
-						console.log('on transacion.query')
+					query: function (
+						sql,
+						params,
+						options,
+						dataConnection,
+						returnConnection
+					) {
+						console.log("on transacion.query")
 						params = params || {}
 						return new Promise(function (resolve, reject) {
 							if (debug) {
-								console.log('transaction -> sql', sql)
-								console.log('transaction -> params', params)
+								console.log("transaction -> sql", sql)
+								console.log("transaction -> params", params)
 							}
 
 							if (!_this.connection) {
 								reject({
 									code: -1,
-									message: 'La conexión fue cerrada por un error en las consultas anteriores'
+									message:
+										"La conexión fue cerrada por un error en las consultas anteriores",
 								})
 								return
 							}
-							_this.connection.execute(sql, params, {}, function (err, result) {
-								if (debug) {
-									console.log('oracleConnection.query -> result ', result)
-								}
-								if (err) {
-									console.log('err-->', err)
-								}
-								if (err) {
-									_this.returnObject
-										.rollback()
-										.then(function (result) {
-											reject({
-												code: -2,
-												message: 'No se pudo generar la consulta',
-												error: err
+							_this.connection.execute(
+								sql,
+								params,
+								{},
+								function (err, result) {
+									if (debug) {
+										console.log(
+											"oracleConnection.query -> result ",
+											result
+										)
+									}
+									if (err) {
+										console.log("err-->", err)
+									}
+									if (err) {
+										_this.returnObject
+											.rollback()
+											.then(function (result) {
+												reject({
+													code: -2,
+													message:
+														"No se pudo generar la consulta",
+													error: err,
+												})
 											})
-										})
-										.catch(function (err) {
-											reject({
-												code: -1,
-												message: 'No se pudo generar la consulta',
-												error: err
+											.catch(function (err) {
+												reject({
+													code: -1,
+													message:
+														"No se pudo generar la consulta",
+													error: err,
+												})
 											})
-										})
+										return
+									}
+									resolve({
+										code: 1,
+										message: "Consulta ejecutada",
+										data: result,
+									})
 									return
 								}
-								resolve({
-									code: 1,
-									message: 'Consulta ejecutada',
-									data: result
-								})
-								return
-							})
+							)
 						})
 					},
 					rollback: function () {
-						console.log('on transacion.rollback')
+						console.log("on transacion.rollback")
 						return new Promise(function (resolve, reject) {
 							if (!_this.connection) {
 								resolve({
 									code: 2,
-									message: 'RollBack y cierre de conexión ejecutado generado anteriormente'
+									message:
+										"RollBack y cierre de conexión ejecutado generado anteriormente",
 								})
 								return
 							}
@@ -492,33 +525,37 @@ Oracle.getTransaction = function (dataConnection) {
 										.then(function (result) {
 											resolve({
 												code: 1,
-												message: 'RollBack y cierre de conexión ejecutado'
+												message:
+													"RollBack y cierre de conexión ejecutado",
 											})
 										})
 										.catch(function (err) {
 											reject({
 												code: -1,
-												message: 'Ocurrió un error al cerrar la conexión RB',
-												error: err
+												message:
+													"Ocurrió un error al cerrar la conexión RB",
+												error: err,
 											})
 										})
 								})
 								.catch(function (err) {
 									reject({
 										code: -2,
-										message: 'Ocurrió un error al cerrar la conexión RB',
-										error: err
+										message:
+											"Ocurrió un error al cerrar la conexión RB",
+										error: err,
 									})
 								})
 						})
 					},
 					commit: function () {
-						console.log('on transacion.commit')
+						console.log("on transacion.commit")
 						return new Promise(function (resolve, reject) {
 							if (!_this.connection) {
 								reject({
 									code: -3,
-									message: 'La conexión fue cerrada por un error en las consultas anteriores'
+									message:
+										"La conexión fue cerrada por un error en las consultas anteriores",
 								})
 								return
 							}
@@ -526,8 +563,9 @@ Oracle.getTransaction = function (dataConnection) {
 								if (err) {
 									reject({
 										code: -1,
-										message: 'Ocurrió un error hacer commit',
-										error: err
+										message:
+											"Ocurrió un error hacer commit",
+										error: err,
 									})
 									_this.returnObject.closeConnection()
 									return
@@ -537,26 +575,29 @@ Oracle.getTransaction = function (dataConnection) {
 									.then(function (result) {
 										resolve({
 											code: 1,
-											message: 'Commit y cierre de conexión ejecutado'
+											message:
+												"Commit y cierre de conexión ejecutado",
 										})
 									})
 									.catch(function (err) {
 										reject({
 											code: -2,
-											message: 'Ocurrió un error al cerrar la conexión C',
-											error: err
+											message:
+												"Ocurrió un error al cerrar la conexión C",
+											error: err,
 										})
 									})
 							})
 						})
 					},
 					closeConnection: function () {
-						console.log('on transacion.closeConnection')
+						console.log("on transacion.closeConnection")
 						return new Promise(function (resolve, reject) {
 							if (!_this.connection) {
 								reject({
 									code: -4,
-									message: 'La conexión fue cerrada por un error en las consultas anteriores'
+									message:
+										"La conexión fue cerrada por un error en las consultas anteriores",
 								})
 								return
 							}
@@ -564,28 +605,30 @@ Oracle.getTransaction = function (dataConnection) {
 								if (err) {
 									reject({
 										code: -2,
-										message: 'No fue posible cerrar la conexión',
-										error: err
+										message:
+											"No fue posible cerrar la conexión",
+										error: err,
 									})
 									return
 								}
 								_this.connection = null
 								resolve({
 									code: 1,
-									message: 'Conexión cerrada'
+									message: "Conexión cerrada",
 								})
 								return
 							})
 						})
-					}
+					},
 				}
 				resolve(_this.returnObject)
 			})
 			.catch(function (err) {
 				reject({
-					'message': 'Ocurrió un error al generar el objeto de transacción',
-					'code': -1,
-					'error': err
+					message:
+						"Ocurrió un error al generar el objeto de transacción",
+					code: -1,
+					error: err,
 				})
 				return
 			})
