@@ -4,6 +4,8 @@ services:
   web-server:
     restart: always
     build: .
+    image: node-oracle
+    container_name: blog_cms
     ports:
       - "3000:3000"
     volumes:
