@@ -1,5 +1,5 @@
 /**
- * @module Api/OracleDb
+ * @module oracle
  * @description Módulo encargado de la conexión y actualización en la base de datos Oracle
  * @version 1.0
  *<b>MÓDULOS npm NECESARIOS:</b>
