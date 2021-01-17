@@ -1,12 +1,13 @@
 const app = require("./app")
+const port = app.get("port")
 
 const main = () => {
 	return new Promise((resolve, reject) => {
-		app.listen(3000)
+		app.listen(port)
 		resolve()
 	})
 }
 
 main()
-	.then(() => console.log("Running on port 3000"))
+	.then(() => console.log(`Running on port ${port}`))
 	.catch((err) => console.log("Cannot up server"))
