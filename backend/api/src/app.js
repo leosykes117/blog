@@ -8,6 +8,7 @@ app.set('port', 3000)
 app.set('json spaces', 2)
 
 // middlewares
+app.use(cors())
 app.use(morgan("dev"))
 app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
