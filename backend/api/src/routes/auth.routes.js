@@ -4,9 +4,9 @@ const authController = require("../controllers/auth.controller")
 
 router.post("/signin", (req, res) => {
 	authController
-		.signIn(req, res)
+		.signIn(req)
 		.then((response) => {
-			res.status(200).json("signin")
+			res.status(200).json(response)
 		})
 		.catch((err) => {
 			res.status(400).json(err)
