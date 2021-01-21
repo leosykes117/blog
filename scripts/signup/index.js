@@ -1,5 +1,5 @@
-const cipherSuite = require("./lib/cipherSuite")
-const bcrypt = require("bcryptjs")
+const cipherSuite = require('./lib/cipherSuite')
+const bcrypt = require('bcryptjs')
 
 const compareHash = (passwordHash) => {
 	return new Promise((resolve, reject) => {
@@ -17,12 +17,15 @@ const compareHash = (passwordHash) => {
 	})
 }
 
-const cipherHash = (passwordHash) => {
-	let key = cipherSuite.createAESKeyFromString("leo.aremtz98")
+const cipherHash = (password, email) => {
+	const seed = email.split('@')[0]
+	console.log('seed ->', seed)
+	const passwordHash = cipherSuite.hash(password)
+	let key = cipherSuite.createAESKeyFromString(seed)
 	let passwordEncrypted = cipherSuite.aesEncrypt(passwordHash, key.key, key.IV)
 	let passwordB64 = cipherSuite.stringToBase64(passwordEncrypted.data.encryptedText)
-	console.log("passwordHashEncrypt", passwordEncrypted)
-	console.log("passwordB64", passwordB64)
+	console.log('passwordHashEncrypt', passwordEncrypted)
+	console.log('passwordB64', passwordB64)
 	return {
 		passwordHash,
 		passwordEncrypted,
@@ -35,32 +38,36 @@ const encryptPassword = () => {
 		bcrypt
 			.genSalt(10)
 			.then((salt) => {
-				return bcrypt.hash("100%JS", salt)
+				return bcrypt.hash('100%JS', salt)
 			})
 			.then((hash) => {
-				console.log("hash ->", hash)
+				console.log('hash ->', hash)
 				const result = cipherHash(hash)
 				resolve(result)
 			})
 			.catch((err) => {
-				console.log("gensalt err ->", err)
+				console.log('gensalt err ->', err)
 				reject(err)
 			})
 	})
 }
 
-let firstHash, secondHash
-compareHash("100%JS")
+
+let passwordHash = cipherHash('Benito14', 'benito_quintero31@gmail.com')
+console.log({passwordHash})
+
+/* let firstHash, secondHash
+compareHash('100%JS')
 	.then((fHash) => {
 		firstHash = fHash
-		return compareHash("100%JS")
+		return compareHash('100%JS')
 	})
 	.then((sHash) => {
 		secondHash = sHash
-		console.log({firstHash, secondHash})
+		console.log({ firstHash, secondHash })
 		console.log(firstHash === secondHash)
 	})
-	.catch((err) => {})
+	.catch((err) => {}) */
 
 /* encryptPassword()
 	.then((response) => {

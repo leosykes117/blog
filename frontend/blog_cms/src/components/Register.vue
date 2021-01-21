@@ -1,27 +1,6 @@
 <template>
 	<div class="register">
-		<p>register</p>
 		<el-form :model="signUpForm" ref="signUpForm" status-icon :rules="rules" class="demo-ruleForm">
-			<el-form-item prop="email">
-				<el-input
-					placeholder="Email"
-					v-model="signUpForm.email"
-					autofocus
-					clearable
-					autocomplete="off"
-				></el-input>
-			</el-form-item>
-
-			<el-form-item prop="password">
-				<el-input
-					placeholder="Password"
-					v-model="signUpForm.password"
-					show-password
-					clearable
-					autocomplete="off"
-				></el-input>
-			</el-form-item>
-
 			<el-form-item prop="name">
 				<el-input placeholder="Nombre" v-model="signUpForm.name" clearable autocomplete="off"></el-input>
 			</el-form-item>
@@ -38,9 +17,23 @@
 				</el-radio-group>
 			</el-form-item>
 
+			<el-form-item prop="email">
+				<el-input placeholder="Email" v-model="signUpForm.email" autofocus clearable autocomplete="off"></el-input>
+			</el-form-item>
+
+			<el-form-item prop="password">
+				<el-input
+					placeholder="Password"
+					v-model="signUpForm.password"
+					show-password
+					clearable
+					autocomplete="off"
+				></el-input>
+			</el-form-item>
+
 			<el-form-item>
-				<el-button type="primary" @click="submitForm('signUpForm')">
-					Sign up
+				<el-button type="primary" round @click="submitForm('signUpForm')">
+					Crear cuenta
 				</el-button>
 			</el-form-item>
 		</el-form>
@@ -48,22 +41,12 @@
 </template>
 
 <script>
-const cipherSuite = require('../lib/cipher-suite')
+import auth from '../lib/auth'
 
 export default {
 	name: 'Register',
 	data() {
-		var validateEmail = (rule, value, callback) => {
-			const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-			if (typeof value !== 'string' || value.length < 1) {
-				callback(new Error('Por favor ingresa un email'))
-			} else if (!re.test(value)) {
-				callback(new Error('El email no es válido'))
-			} else {
-				callback()
-			}
-		}
-
+		var validateEmail = auth.validateEmail
 		return {
 			signUpData: {
 				email: '',
@@ -80,17 +63,18 @@ export default {
 				gender: '',
 			},
 			rules: {
-				email: [{ validator: validateEmail, trigger: 'blur' }],
-				password: [{ required: true, message: 'Please input password', trigger: 'blur' }],
 				name: [
 					{ required: true, message: 'Por favor ingresa el nombre', trigger: 'blur' },
 					{ min: 3, max: 50, message: 'El nombre deber tener entre 3 y 50 letras', trigger: 'blur' },
 				],
 				lastname: [
 					{ required: true, message: 'Por favor ingresa el apellido', trigger: 'blur' },
-					{ min: 3, max: 80, message: 'El apellidos deber tener entre 3 y 80 letras', trigger: 'blur' }
+					{ min: 3, max: 80, message: 'El apellidos deber tener entre 3 y 80 letras', trigger: 'blur' },
 				],
+				email: [{ validator: validateEmail, trigger: 'blur' }],
+				password: [{ required: true, message: 'Por favor ingresa el password', trigger: 'blur' }],
 			},
+			sendingData: false,
 			baseUrl: 'http://localhost:3000',
 		}
 	},
@@ -106,11 +90,12 @@ export default {
 			})
 		},
 		resetForm(formName) {
+			this.sendingData = true
 			this.$refs[formName].resetFields()
 		},
 		signUp(formName) {
 			console.log('submit!')
-			const security = this.cipherPass(this.signUpForm.password)
+			const security = auth.cipherPassword(this.signUpForm.email, this.signUpForm.password)
 			console.log({ security })
 			this.signUpData.passwordHash = security.passwordB64
 			this.signUpData.email = this.signUpForm.email
@@ -121,7 +106,7 @@ export default {
 
 			const loading = this.$loading({
 				lock: true,
-				text: 'Loading',
+				text: 'Creando cuenta...',
 				spinner: 'el-icon-loading',
 				background: 'rgba(0, 0, 0, 0.7)',
 			})
@@ -129,38 +114,22 @@ export default {
 			this.axios
 				.post(`${this.baseUrl}/api/auth/signup`, this.signUpData)
 				.then((response) => {
-					loading.close()
-					this.$message({
-						message: response.data.message,
-						type: 'success',
-					})
 					console.log(response)
+					localStorage.setItem('idToken', response.data.data.token)
+					this.sendingData = false
+					loading.close()
+					this.$router.replace('/')
 				})
 				.catch((error) => {
-					console.log('ERROR ->', error)
+					this.sendingData = false
+					console.error('ERROR ->', error)
 					loading.close()
 					this.$message({
-						message: error.data.message,
+						message: error.response.data.message,
 						type: 'error',
 					})
 					this.resetForm(formName)
 				})
-		},
-		cipherPass(password) {
-			console.log("password -->", password)
-			const seed = this.signUpForm.email.split('@')[0]
-			console.log('seed ->', seed)
-			const passwordHash = cipherSuite.hash(password)
-			let key = cipherSuite.createAESKeyFromString(seed)
-			let passwordEncrypted = cipherSuite.aesEncrypt(passwordHash, key.key, key.IV)
-			let passwordB64 = cipherSuite.stringToBase64(passwordEncrypted.data.encryptedText)
-			console.log('passwordHashEncrypt', passwordEncrypted)
-			console.log('passwordB64', passwordB64)
-			return {
-				passwordHash,
-				passwordEncrypted,
-				passwordB64,
-			}
 		},
 	},
 }

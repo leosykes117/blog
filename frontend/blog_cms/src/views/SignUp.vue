@@ -1,7 +1,11 @@
 <template>
 	<div class="signup">
-		<h1>Signup</h1>
-		<Register />
+		<div class="container-form">
+			<div class="form-vertical-align">
+				<h1>Crea una cuenta</h1>
+				<Register />
+			</div>
+		</div>
 	</div>
 </template>
 
@@ -16,4 +20,5 @@ export default {
 }
 </script>
 
-<style></style>
+<style lang="scss" scoped>
+</style>

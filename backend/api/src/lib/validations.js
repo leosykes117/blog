@@ -38,11 +38,11 @@ validations.validateSignUpPayload = (payload) => {
 			console.log('lastname válido ✅')
 		}
 
-		if (typeof gender !== 'string') {
+		if (typeof gender === 'string') {
 			if (gender.length !== 1) {
 				messages.push('El genero no es un caracter')
 			}
-			if (gender !== 'M' || gender !== 'F') {
+			if (gender !== 'M' && gender !== 'F') {
 				messages.push('El valor del genero no es válido')
 			}
 		}

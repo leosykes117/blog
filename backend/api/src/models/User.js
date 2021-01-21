@@ -65,7 +65,15 @@ User.create = (dataset) => {
 			})
 			.then((response) => {
 				if (typeof response.data.outBinds.userId[0] !== 'number') {
-					reject(utilitiesResponse.workTheTransactionError(true, transaction, 'El registro del usuario no fue creado correctamente', -1, {}))
+					reject(
+						utilitiesResponse.workTheTransactionError(
+							true,
+							transaction,
+							'El registro del usuario no fue creado correctamente',
+							-1,
+							{}
+						)
+					)
 				}
 				const data = {
 					id: response.data.outBinds.userId[0],
@@ -81,6 +89,46 @@ User.create = (dataset) => {
 			})
 			.catch((err) => {
 				reject(utilitiesResponse.workTheTransactionError(true, transaction, errMessage, errCode, err))
+			})
+	})
+}
+
+User.getUser = (dataset) => {
+	return new Promise((resolve, reject) => {
+		let sql = `SELECT
+					ID_USUARIO		--0
+					, EMAIL			--1
+					, PASSWORDHASH	--2
+					, NOMBRE		--3
+					, APELLIDOS		--4
+					, GENERO		--5
+				FROM USUARIOS
+				WHERE EMAIL = :email`
+		let sqlParams = {
+			email: dataset.email
+		}
+		oracle
+			.query(sql, sqlParams)
+			.then((queryResponse) => {
+				console.log('queryResponse -->', queryResponse)
+				let searchedUser = queryResponse.data.rows
+				if (searchedUser.length === 0) {
+					resolve(utilitiesResponse.makeOkResponse('El usuario no existe', 2, {}))
+					return
+				}
+				const user = {
+					id: searchedUser[0][0],
+					email: searchedUser[0][1],
+					passwordHash: searchedUser[0][2],
+					name: searchedUser[0][3],
+					lastname: searchedUser[0][4],
+					gender: searchedUser[0][5],
+				}
+				resolve(utilitiesResponse.makeOkResponse('Usuario encontrado', 1, user))
+			})
+			.catch((err) => {
+				console.log('findByEmail error ->', err)
+				reject(utilitiesResponse.makeErrorResponse('Ocurrio un error al buscar al usuario', -1, err))
 			})
 	})
 }

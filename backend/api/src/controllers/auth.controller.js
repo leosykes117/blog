@@ -5,9 +5,51 @@ const utilitiesResponse = require('../lib/responses')
 const validations = require('../lib/validations')
 const authController = {}
 
-authController.signIn = (req, res) => {
+authController.signIn = (req) => {
 	return new Promise((resolve, reject) => {
-		resolve()
+		console.log('req.body ->', req.body)
+		const { email, passwordHash } = req.body
+
+		let passwordHashStorage = ''
+		let userData
+
+		User.decryptPassword(passwordHash, email)
+			.then((passwordDecResponse) => {
+				console.log(JSON.stringify({ passwordDecResponse }))
+				passwordHashStorage = passwordDecResponse.data
+				return User.getUser({email})
+			})
+			.then((searchResponse) => {
+				if (searchResponse.code != 1) {
+					console.log('El correo no existe')
+					reject(utilitiesResponse.makeErrorResponse('Error en el correo electrónico o password', -2))
+					return
+				}
+				if (searchResponse.data.passwordHash !== passwordHashStorage) {
+					console.log('Los hash de los passwords no coinciden')
+					reject(utilitiesResponse.makeErrorResponse('Error en el correo electrónico o password', -3))
+					return
+				}
+				userData = {
+					name: searchResponse.data.name,
+					lastname: searchResponse.data.lastname,
+					gender: searchResponse.data.lastname.gender,
+				}
+				const payload = {
+					id: searchResponse.data.id,
+					email: searchResponse.data.email,
+				}
+				const token = jwt.sign(payload, config.SECRET, {
+					expiresIn: 86400,
+				})
+
+				console.log('token ->', token)
+				resolve(utilitiesResponse.makeOkResponse('Autenticado con éxito', 1, { token, userData }))
+			})
+			.catch((err) => {
+				console.log(err)
+				reject(utilitiesResponse.makeErrorResponse('Ocurrio un error al verificar el correo del usuario', -1, err))
+			})
 	})
 }
 
@@ -51,6 +93,7 @@ authController.signUp = (req, res) => {
 					expiresIn: 86400,
 				})
 				console.log(JSON.stringify({ userInsertResponse }))
+				console.log('token ->', token)
 				resolve(utilitiesResponse.makeOkResponse('Usuario creado con éxito', 1, { token }))
 			})
 			.catch((err) => {
