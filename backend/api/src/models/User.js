@@ -6,6 +6,36 @@ const User = {}
 
 const oracledb = oracle.checkAvailability()
 
+User.findById = (userId) => {
+	return new Promise((resolve, reject) => {
+		let sql = `SELECT
+					ID_USUARIO --0
+				FROM USUARIOS
+				WHERE ID_USUARIO = :userId`
+		let sqlParams = {
+			userId,
+		}
+		oracle
+			.query(sql, sqlParams)
+			.then((queryResponse) => {
+				console.log('queryResponse -->', queryResponse)
+				let searchedUser = queryResponse.data.rows
+				if (searchedUser.length === 0) {
+					resolve(utilitiesResponse.makeOkResponse('El usuario no existe', 2, {}))
+					return
+				}
+				const user = {
+					id: searchedUser[0][0],
+				}
+				resolve(utilitiesResponse.makeOkResponse('Usuario encontrado', 1, user))
+			})
+			.catch((err) => {
+				console.log('findByEmail error ->', err)
+				reject(utilitiesResponse.makeErrorResponse('Ocurrio un error al buscar al usuario', -1, err))
+			})
+	})
+}
+
 User.findByEmail = (email) => {
 	return new Promise((resolve, reject) => {
 		let sql = `SELECT
@@ -79,7 +109,7 @@ User.create = (dataset) => {
 					id: response.data.outBinds.userId[0],
 				}
 				transaction
-					.rollback()
+					.commit()
 					.then(function () {
 						resolve(utilitiesResponse.makeOkResponse('Usuario creado con éxito', 1, data))
 					})

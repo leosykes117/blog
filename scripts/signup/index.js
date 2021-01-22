@@ -53,7 +53,7 @@ const encryptPassword = () => {
 }
 
 
-let passwordHash = cipherHash('Benito14', 'benito_quintero31@gmail.com')
+let passwordHash = cipherHash('SnYnbe7VOWkS3gV', 'adela47@gmail.com')
 console.log({passwordHash})
 
 /* let firstHash, secondHash

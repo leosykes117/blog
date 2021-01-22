@@ -108,7 +108,7 @@ var cipherSuite = {
 	 */
 	createAESKeyFromString: function (input) {
 		var _this = this
-		if (!(typeof input === "string" && input.length > 8)) {
+		if (!(typeof input === "string")) {
 			return false
 		}
 		var IV = forge.util.hexToBytes(_this.hash(input.substring(0, 8))).substring(0, 16)

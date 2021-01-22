@@ -34,6 +34,11 @@ const routes = [
 		name: 'Logout',
 		component: () => import('../components/Logout.vue'),
 	},
+	{
+		path: '/editArticle',
+		name: 'EditArticle',
+		component: () => import('../components/EditArticle.vue'),
+	},
 ]
 
 const router = new VueRouter({

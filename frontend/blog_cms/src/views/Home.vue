@@ -7,8 +7,6 @@
 			<router-link to="/signup">Registrarse</router-link>
 			 | 
 			<router-link to="/signin">Iniciar sesión</router-link>
-			<img alt="Vue logo" src="../assets/logo.png" />
-			<HelloWorld msg="Welcome to Your Vue.js App" />
 		</div>
 	</div>
 </template>
